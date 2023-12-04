@@ -1,0 +1,2 @@
+- setup-file:
+    local-name: /home/nicola/catkin_ws/src/Lab4/build/devel/setup.sh
