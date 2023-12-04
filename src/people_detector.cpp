@@ -5,8 +5,13 @@
 
 void callback(const sensor_msgs::LaserScan::ConstPtr& msg)
 {
+    // 1) cluster
+
+    // 2) avg value for cluster
+    // 2.1) cvt to cartesian
+
+    // 3) publish clusters cartesian coordinates
     
-   
 }
 
 
