@@ -1,4 +1,5 @@
 #include "utilities.h"
+#include "ros/ros.h"
 
 #include <vector>
 #include <cstdlib>
@@ -28,10 +29,10 @@ static void init_centroids(Point * centroids, float max_range)
     }
 }
 
-std::vector<Point> polar_to_cartesian(float * ranges)
+std::vector<Point> polar_to_cartesian(std::vector<float> ranges)
 {
     std::vector<Point> cartesian_points;
-    for(int i = 0; i < sizeof(ranges)/sizeof(ranges[0]); i++)
+    for(int i = 0; i < ranges.size(); i++)
     {
         if(std::isfinite(ranges[i]))
         {
@@ -45,28 +46,6 @@ std::vector<Point> polar_to_cartesian(float * ranges)
 
     return cartesian_points;
 }
-
-/* COMPUTES AVG INNER CLUSTER DISTANCE FOR EVERY CLUSTER
-float * avg_cluster_distances(std::vector<Point> ranges, std::vector<Point> centroids)
-{
-    float avg_clust_dist[centroids.size()];
-    int cluster_counter[centroids.size()];
-    int j = 0;
-
-    for(int i = 0; i < ranges.size(); i++)
-    {
-        avg_clust_dist[ranges[i].cluster] += distance(ranges[i], centroids[ranges[i].cluster]);
-        cluster_counter[ranges[i].cluster]++;
-    }
-    
-    for(int i = 0; i < centroids.size(); i++)
-    {
-        avg_clust_dist[i] /= (float)cluster_counter[i];
-    }
-
-    return avg_clust_dist;
-}
-*/
 
 static float avg_cluster_distance(std::vector<Point> ranges, Point centroids[])
 {
@@ -102,10 +81,8 @@ static void new_centroids(std::vector<Point> ranges, Point * centroids)
     }
 }
 
-std::vector<Point> kmeans(std::vector<Point> ranges, int k)
+Point * kmeans(std::vector<Point> ranges, int k, Point centroids[])
 {
-    //Point * centroids = init_centroids(k, 3.5f);
-    Point centroids[k];
     init_centroids(centroids, 3.5f);
 
     float last_avg_distance = 100.0f;
@@ -115,15 +92,20 @@ std::vector<Point> kmeans(std::vector<Point> ranges, int k)
     {
         last_avg_distance = curr_avg_distance;
         float min_centroid_distance = 100.0f;
+        ROS_INFO("entering for i");
         for(int i = 0; i < ranges.size(); i++)  // This cycle assigns a cluster to every node
         {
-            for(int j = 0; j < k; j++)
+            ROS_INFO("i: %d", i);
+            ROS_INFO("entering for j");
+            for(int j = 0; j < 3; j++)
             {
+                ROS_INFO("start j: %d", j);
                 if(distance(ranges[i], centroids[j]) < min_centroid_distance)
                 {
                     min_centroid_distance = distance(ranges[i], centroids[j]);
                     ranges[i].cluster = centroids[j].cluster;
                 }
+                ROS_INFO("end j: %d", j);
             }
             min_centroid_distance = 100.0f;
         }
@@ -132,7 +114,8 @@ std::vector<Point> kmeans(std::vector<Point> ranges, int k)
         curr_avg_distance = avg_cluster_distance(ranges, centroids);
         new_centroids(ranges, centroids);
 
+        ROS_INFO("while of kmeans");
     }
 
-    return ranges;
+    return centroids;
 }
